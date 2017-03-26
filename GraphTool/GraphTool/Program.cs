@@ -8,16 +8,21 @@ namespace GraphTool
 {
 	class Program
 	{
-		public static int A;
-		public static void Test(int a)
-		{
-			a++;
-		}		
 		static void Main(string[] args)
 		{
-			A = 10;
-			Console.WriteLine(A);
-			Console.ReadKey();
+			Graph g = new Graph(4);
+			g.AddEdge(0, 1);
+			g.AddEdge(0, 2);
+			g.AddEdge(0, 3);
+			g.AddEdge(2, 0);
+			g.AddEdge(2, 1);
+			g.AddEdge(1, 3);
+			int s = 2, d = 3;
+			g.PrintAllPaths(s, d);		
+
+			Console.WriteLine("Lisstttt");
+			g.AllPathList.ForEach(x => Console.WriteLine(String.Join(" ",x)));
+			Console.Read();
 		}
 	}
 }
