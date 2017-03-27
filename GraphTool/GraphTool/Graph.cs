@@ -6,31 +6,69 @@ using System.Threading.Tasks;
 
 namespace GraphTool
 {
+	//Custom Node for adjacency list: graph with weight or many different edge types
+	/// <summary>
+	/// Adjs[i] = All edges form nod i
+	/// </summary>
+	public class Arc
+	{	
+		public int Des { get; set; } //Link to destination vertex
+		public string Type { get; set; }
+		public double Weight { get; set; }		
+		public Arc(int d, int weight)
+		{
+			this.Des = d;
+			this.Weight = weight;
+		}
+		public Arc(int d, int weight, string type)
+		{
+			this.Des = d;
+			this.Weight = weight;
+			this.Type = type;
+		}
+	}
+
 	// A directed graph using adjacency list representation
 	class Graph
 	{
 		#region Public Attributes
 		public List<List<int>> AllPathList { get; set; }
+		public List<Tuple<List<int>,double>> AllPathListWithDistance { get; set; }
+
 		#endregion
 		int V; //Total Vertex of Graph
 		List<int>[] Adjs; // Array of adjacency list
-		#region public		
+		List<Arc>[] CustomAdjs; /// Adjs[i] = All edges form node i
+		
+		private void Init()
+		{
+			Adjs = new List<int>[V];
+			CustomAdjs = new List<Arc>[V];
+			//Initial all Adjs list for each vertex
+			AllPathList = new List<List<int>>();
+			AllPathListWithDistance = new List<Tuple<List<int>, double>>();
+		}
+		#region public					
 		public Graph (int v)
 		{
 			this.V = v;
-			Adjs = new List<int>[V];
-			//Initial all Adjs list for each vertex
-			AllPathList = new List<List<int>>();
-
+			Init();
 			for (int i = 0; i < Adjs.Length; i++)
 			{
 				Adjs[i] = new List<int>();
+				CustomAdjs[i] = new List<Arc>();
 			}
 		}
 
 		public void AddEdge(int u, int v)
 		{
-			Adjs[u].Add(v);
+			Adjs[u].Add(v);			
+		}
+
+		public void AddEdge(int u, int v, int w)
+		{
+			Arc newEdge = new Arc(v, w);
+			CustomAdjs[u].Add(newEdge);
 		}
 
 		//Print all Paths from source to destination
@@ -43,7 +81,6 @@ namespace GraphTool
 			int pathIndex = 0;
 			//Call Graph Travesal algorithm
 			DepthFirstSearch(s,d,visited,path,ref pathIndex);
-
 		}
 
 		//Depth First Search
@@ -56,16 +93,18 @@ namespace GraphTool
 			// If current vertex is the destination, then print current path[]
 			if (u == d)
 			{
-				PrintPath(path,pathIndex);
+				//PrintPath(path,pathIndex);
 				PrintPathToList(path,pathIndex);
+				PrintPathAndDistanceToList(path, pathIndex);
 			}
 			else //Current vertex is not the destination then recursive visite all adjacence vertices to this current vertex
 			{
-				foreach (int i in Adjs[u])
+				foreach (var arc in CustomAdjs[u])
 				{
-					if (!visited[i])
+					int adjVertex = arc.Des;
+					if (!visited[adjVertex])
 					{
-						DepthFirstSearch(i, d, visited, path, ref pathIndex);
+						DepthFirstSearch(adjVertex, d, visited, path, ref pathIndex);
 					}
 				}
 			}
@@ -78,6 +117,19 @@ namespace GraphTool
 		private void PrintPathToList(int[] path, int pathIndex)
 		{
 			this.AllPathList.Add(path.Take(pathIndex).ToList());
+		}
+		private void PrintPathAndDistanceToList(int[] path, int pathIndex)
+		{
+			double sum = 0;
+			for (int i = 0;i< pathIndex-1; i++)
+			{
+				int currentVertex = path[i];
+				int nextVertex = path[i + 1];
+				//Reminde CustomAdjs[currentVertex] list all adjacency of currentVertex
+				sum += CustomAdjs[currentVertex].Find(x=>x.Des == nextVertex).Weight;
+			}
+			Tuple<List<int>, double> newTuple = new Tuple<List<int>, double>(path.Take(pathIndex).ToList(), sum);
+			this.AllPathListWithDistance.Add(newTuple);
 		}
 		private void PrintPath(int[] path, int pathIndex)
 		{
