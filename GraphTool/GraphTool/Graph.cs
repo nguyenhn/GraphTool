@@ -15,12 +15,12 @@ namespace GraphTool
 		public int Des { get; set; } //Link to destination vertex
 		public string Type { get; set; }
 		public double Weight { get; set; }		
-		public Arc(int d, int weight)
+		public Arc(int d, double weight)
 		{
 			this.Des = d;
 			this.Weight = weight;
 		}
-		public Arc(int d, int weight, string type)
+		public Arc(int d, double weight, string type)
 		{
 			this.Des = d;
 			this.Weight = weight;
@@ -65,7 +65,7 @@ namespace GraphTool
 			Adjs[u].Add(v);			
 		}
 
-		public void AddEdge(int u, int v, int w)
+		public void AddEdge(int u, int v, double w)
 		{
 			Arc newEdge = new Arc(v, w);
 			CustomAdjs[u].Add(newEdge);
