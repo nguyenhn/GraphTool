@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,15 +32,16 @@ namespace GraphTool
 	// A directed graph using adjacency list representation
 	class Graph
 	{
-		#region Public Attributes
+		#region Public Attributes		
 		public List<List<int>> AllPathList { get; set; }
 		public List<Tuple<List<int>,double>> AllPathListWithDistance { get; set; }
 
-		#endregion
+		#endregion		
 		int V; //Total Vertex of Graph
 		List<int>[] Adjs; // Array of adjacency list
 		List<Arc>[] CustomAdjs; /// Adjs[i] = All edges form node i
-		
+		Queue<int> mainQueue;
+		Stack<int> mainStack;
 		private void Init()
 		{
 			Adjs = new List<int>[V];
@@ -47,6 +49,8 @@ namespace GraphTool
 			//Initial all Adjs list for each vertex
 			AllPathList = new List<List<int>>();
 			AllPathListWithDistance = new List<Tuple<List<int>, double>>();
+			mainQueue = new Queue<int>();
+			mainStack = new Stack<int>();
 		}
 		#region public					
 		public Graph (int v)
@@ -80,11 +84,19 @@ namespace GraphTool
 			int[] path = new int[V];
 			int pathIndex = 0;
 			//Call Graph Travesal algorithm
-			DepthFirstSearch(s,d,visited,path,ref pathIndex);
+			DepthFirstSearch(s,d,visited,path,pathIndex);
 		}
 
+		#endregion
+		#region private
+		//Breath First Search		
+		void BFS(int s,bool[] visited, int[] path, int pathIndex){
+
+		}
+
+
 		//Depth First Search
-		void DepthFirstSearch(int u,int d, bool[] visited, int[] path,ref int pathIndex)
+		void DepthFirstSearch(int u, int d, bool[] visited, int[] path, int pathIndex)
 		{
 			//Mark visited current vertex (u)
 			visited[u] = true;
@@ -94,7 +106,7 @@ namespace GraphTool
 			if (u == d)
 			{
 				//PrintPath(path,pathIndex);
-				PrintPathToList(path,pathIndex);
+				PrintPathToList(path, pathIndex);
 				PrintPathAndDistanceToList(path, pathIndex);
 			}
 			else //Current vertex is not the destination then recursive visite all adjacence vertices to this current vertex
@@ -104,16 +116,14 @@ namespace GraphTool
 					int adjVertex = arc.Des;
 					if (!visited[adjVertex])
 					{
-						DepthFirstSearch(adjVertex, d, visited, path, ref pathIndex);
+						DepthFirstSearch(adjVertex, d, visited, path, pathIndex);
 					}
 				}
 			}
 			//Remove current vertex from path and mark it as unvisited for another path
 			pathIndex--;
-			visited[u] = false;			
+			visited[u] = false;
 		}
-		#endregion
-		#region private
 		private void PrintPathToList(int[] path, int pathIndex)
 		{
 			this.AllPathList.Add(path.Take(pathIndex).ToList());
