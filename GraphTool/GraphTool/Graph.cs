@@ -102,12 +102,7 @@ namespace GraphTool
 				EdgeAdjs[i] = new List<Edge>(); 
 			}
 		}
-
-		public void AddEdge(int u, int v)
-		{
-			Adjs[u].Add(v);
-		}
-
+		
 		public void AddEdge(int u, int v, int Id)
 		{
 			double idd = Id;
@@ -141,71 +136,88 @@ namespace GraphTool
 		public void PrintAllPaths(int s, int d)
 		{
 			//Mark all vertives not visited
-			bool[] visited = new bool[V];
-			//Path tracking
-			int[] path = new int[V];
-			int pathIndex = 0;
+				
 			//Call Graph Travesal algorithm
 			//DepthFirstSearch(s,d,visited,path,pathIndex);
 			//BFSPath(s, d);
-			EdgesBFSPath(s, d);
+			//EdgesBFSPath(s, d);
 			Console.WriteLine("-------------------------------------------------------------");
 			BFS(s, d);
-		}
+            RecursivePath(s,d,new bool[2000], new int[2000],0);
+            //DFSAllPath(s, d);
+
+        }
 
 		#endregion
 		#region private
 		//Breath First Search		
-		public List<int>[] reachedBy { get; set; }
-		List<int[]> AllStackPath;		
+		public List<int>[] Previous { get; set; }
+		List<int[]> AllStackPath;
+		bool pathFound;
 		void EdgesBFSPath(int s, int d)
 		{
 			//Init new Graph on Path
-			bool[] visitedEdge = new bool[this.EdgeList.Max(x => x.Id) + 1];
+			//bool[] visitedEdge = new bool[this.EdgeList.Max(x => x.Id) + 1];
+			
+			bool[] visitedEdge = new bool[1700];
 			var startEdges = EdgeList.Where(x => x.StartNode == s);
-			if (startEdges == null) return;
+			var endEdges = EdgeList.Where(x => x.EndNode == d);
+			if ((startEdges == null)|| (endEdges == null)) return;
 			foreach (var startEdge in startEdges)
 			{
 				Queue<List<Edge>> pathQueue = new Queue<List<Edge>>();
 				List<Edge> tempPath = new List<Edge>();
 				tempPath.Add(startEdge);
-				pathQueue.Enqueue(tempPath);
-				
+				pathQueue.Enqueue(tempPath);				
 				Edge lastEdge;
 				int pathLenght = 1;
 				int currentLabel = startEdge.Label;
 				List<Edge> newPath;
 				while (pathQueue.Count > 0)
 				{
-					List<Edge> lastPath = pathQueue.Last();
+					List<Edge> lastPath = pathQueue.Last();					
 					tempPath = pathQueue.Dequeue();					
 					//if (tempPath.Count < lastPath.Count) continue;
 					lastEdge = tempPath.Last();
-					currentLabel = lastEdge.Label;
 					visitedEdge[lastEdge.Id] = true;
-					//PrintTempPath(tempPath);
+					currentLabel = lastEdge.Label;
+					if (currentLabel < 0)
+					{
+						visitedEdge = new bool[1700];
+					}
+					PrintTempPath(tempPath);
 					if (lastEdge.EndNode == d)
 					{
-						Console.Write("--------------------------------------------------");
-						Console.Write("good path ");
+						Console.WriteLine("--------------------------------------------------");
+						Console.WriteLine("good path ");
 						PrintTempPath(tempPath);
+						this.pathFound = true;
 					}
 					else
 					{
-						var nextEdgeCheck = EdgeAdjs[lastEdge.EndNode].FirstOrDefault(x => x.Label == currentLabel);
-						if (nextEdgeCheck != null)
+						var nextEdgeChecks = EdgeAdjs[lastEdge.EndNode].Where(x => x.Label == currentLabel).ToList();
+						if (nextEdgeChecks.Count>0)
 						{
-							newPath = new List<Edge>(tempPath);
-							newPath.Add(nextEdgeCheck);
-							pathLenght++;
-							pathQueue.Enqueue(newPath);
+							foreach (var nextEdgeCheck in nextEdgeChecks)
+							{
+								if (visitedEdge[nextEdgeCheck.Id]) continue;
+								if (tempPath.Contains(nextEdgeCheck)) continue;
+								visitedEdge[nextEdgeCheck.Id] = true;
+								newPath = new List<Edge>(tempPath);
+								newPath.Add(nextEdgeCheck);
+								pathLenght++;								
+								pathQueue.Enqueue(newPath);
+							}
+							
 						}
 						else
 						{
 							foreach (var adjEdge in EdgeAdjs[lastEdge.EndNode])
 							{
-								if (!tempPath.Contains(adjEdge))
+								if (tempPath.Contains(adjEdge)) continue;
+								if (!visitedEdge[adjEdge.Id])
 								{
+									visitedEdge[adjEdge.Id] = true;
 									newPath = new List<Edge>(tempPath);
 									newPath.Add(adjEdge);
 									pathLenght++;
@@ -214,19 +226,17 @@ namespace GraphTool
 							}
 						}						
 					}
-				}
+				}				
 			}
-			
+			//if (!this.pathFound) EdgesBFSPath(s, 102);
 
 		}
 
 		void BFSPath(int s, int d)
 		{
 			//Init new Graph on Path
-			List<Arc>[] LocalAdjs = new List<Arc>[V];
-
 			Queue<List<int>> pathQueue = new Queue<List<int>>();
-			reachedBy = new List<int>[V];
+			Previous = new List<int>[V];
 			List<int> tempPath = new List<int>();
 			tempPath.Add(s);
 			pathQueue.Enqueue(tempPath);
@@ -264,7 +274,7 @@ namespace GraphTool
 			Console.Write(tempPath[0].StartNode + ":" + tempPath[0].Label);
 			foreach (var item in tempPath)
 			{
-				Console.Write("{0}:{1} -> ", item.EndNode, item.Label);
+				Console.Write(" -> {0}:{1} ", item.EndNode, item.Label);
 				//Console.Write("[{0},{1}]:{2} -> ", item.StartNode, item.EndNode, item.Id);
 				//Console.Write(" -> " + item.EndNode);
 			}
@@ -273,6 +283,8 @@ namespace GraphTool
 
 		private void PrintTempPath(List<int> tempPath)
 		{
+            Console.WriteLine();
+            Console.WriteLine("----------------------------------------------------");
 			foreach (var item in tempPath)
 			{
 				Console.Write(item + "-> ");
@@ -283,7 +295,7 @@ namespace GraphTool
 		void BFS(int u, int v)
 		{
 			AllStackPath = new List<int[]>();
-			reachedBy = new List<int>[V];
+			Previous = new List<int>[V];
 			//List<int>[] path = new List<int>[V];
 			bool[] visited = new bool[V];
 			visited[u] = true;
@@ -296,30 +308,132 @@ namespace GraphTool
 				foreach (var adjEdge in CustomAdjs[current])
 				{
 					int adjNode = adjEdge.Des;
-					if (reachedBy[adjNode] == null) reachedBy[adjNode] = new List<int>();
-					reachedBy[adjNode].Add(current);
-					if (!visited[adjNode])
-					{
-						//mark visited this vertice
-						visited[adjNode] = true;
-						mainQueue.Enqueue(adjNode);
-					}
-				}
+					if (Previous[adjNode] == null) Previous[adjNode] = new List<int>();
+                    if(!Previous[adjNode].Contains(current)) Previous[adjNode].Add(current);
+                    if (!visited[adjNode])
+                    {
+                        //mark visited this vertice
+                        visited[adjNode] = true;                       
+                        mainQueue.Enqueue(adjNode);
+                    }
+                }
 
 			}
+			if (!visited[v])
+			{
+				Console.WriteLine("There is no path to " + v);
+				return;
+			}
 
-			foreach (var item in PathTo(u,v,visited,reachedBy))
+			foreach (var item in PathTo(u,v,visited,Previous))
 			{
 				Console.Write(item + ":"+ this.EdgeAdjs[item][0].Label + " -> ");
 			}
 		}
 
-		private void tryPath(int pathIndex, int u, int v, bool[] visitedPath, Stack<int> stackPath)
-		{
+        private void RecursivePath(int s, int d, bool[] visited, int[] path, int pathIndex)
+        {
+            //Mark visited current vertex (u)
+            visited[d] = true;
+            path[pathIndex] = d;
+            pathIndex++;
+            // If current vertex is the destination, then print current path[]
+            if (s == d)
+            {
+                PrintPath(path,pathIndex);
+                //PrintPathToList(path, pathIndex);
+                //PrintPathAndDistanceToList(path, pathIndex);
+            }
+            else //Current vertex is not the destination then recursive visite all adjacence vertices to this current vertex
+            {
+                foreach (var node in Previous[d])
+                {
+                    if (!visited[node])
+                    {
+                        RecursivePath(s, node, visited, path, pathIndex);
+                    }
+                }
+            }
+            //Remove current vertex from path and mark it as unvisited for another path
+            pathIndex--;
+            visited[d] = false;
+        }
 
+        private void DFSAllPath(int s, int d)
+        {
+            Stack<int> stack = new Stack<int>();
+            List<int> path = new List<int>();
+            bool[] visited = new bool[2000];
+            
+            stack.Push(s);
+            while (stack.Count > 0)
+            {
+                int current = stack.Pop();
+                visited[current] = true;
+                path.Add(current);
+                if (current == d)
+                {
+                    PrintTempPath(path);
+                    foreach(var node in path)
+                    {
+                        visited[node] = false;
+                    }
+                }
+                foreach (var parentOfcurrent in Previous[current])
+                {
+                    if (!visited[parentOfcurrent])
+                    {
+                        stack.Push(parentOfcurrent);
+                        //visited[parentOfcurrent] = true;
+                    }
+                }
+            }
+        }
+
+		private void tryPathDFS(int s,int d)
+		{
+            mainStack = new Stack<int>();
+            Stack<int> path = new Stack<int>();
+            bool[] visitedEdge = new bool[1700];
+            var startEdges = EdgeList.Where(x => x.StartNode == s).ToList();
+            var endEdges = EdgeList.Where(x => x.EndNode == d && Previous[d].Contains(x.StartNode)).ToList();
+            if ((startEdges == null) || (endEdges == null)) return;
+            foreach (var edge in startEdges)
+            {
+                mainStack.Push(edge.Id);                
+            }           
+            int current;
+            while (mainStack.Count>0)
+            {
+                current = mainStack.Pop();
+                visitedEdge[current] = true;
+                Edge currentEdge = EdgeList.FirstOrDefault(x => x.Id == current);
+                if (startEdges.Select(x=>x.Id).Contains(current))
+                {
+                    PrintTempPathStack(path);
+                }
+                else
+                {
+                    foreach (var vertice in Previous[currentEdge.EndNode])
+                    {
+                        var adjEdge = this.EdgeAdjs[currentEdge.StartNode].FirstOrDefault(x => x.StartNode == vertice);
+                        if (adjEdge != null) mainStack.Push(adjEdge.Id);
+                    }
+                }
+            }
 		}
 
-		public bool HasPathTo(bool[] visited, int v)
+        private void PrintTempPathStack(Stack<int> path)
+        {
+            if (path.Count == 0) return;
+            Console.WriteLine();
+            while (path.Count > 0)
+            {
+                Console.Write(path.Pop() + " -> ");
+            }
+        }
+
+        public bool HasPathTo(bool[] visited, int v)
 		{
 			return visited[v];
 		}
@@ -335,11 +449,7 @@ namespace GraphTool
 
 
 		//Depth First Search
-
-		void DFSUsingStack(int u, int d)
-		{
-
-		}
+	
 
 		void DepthFirstSearch(int u, int d, bool[] visited, int[] path, int pathIndex)
 		{
@@ -388,10 +498,17 @@ namespace GraphTool
 		}
 		private void PrintPath(int[] path, int pathIndex)
 		{
-			for (int i = 0; i < pathIndex; i++)
-			{
-				Console.Write(path[i] + " ");
-			}
+            List<int> result = new List<int>();
+            for (int i = pathIndex-1; i >= 0; i--)
+            {
+                result.Add(path[i]);
+            }
+            Console.WriteLine();
+            Console.WriteLine("---------Rescusive-----------------------------------------------------");            
+            foreach (var item in result)
+            {
+                Console.Write(item + " -> ");
+            }			
 			Console.WriteLine();
 		}
 		#endregion

@@ -27,8 +27,16 @@ namespace GraphTool
 				g.AddEdge(int.Parse(items[0]), int.Parse(items[1]), int.Parse(items[2]), int.Parse(items[3]));
 			}
 
-			int s = 3, d = 101;
-			g.PrintAllPaths(s, d);
+			int s = 3, d = 6;
+            g.AddEdge(s, 4, 1690, -1);
+            g.AddEdge(4, s, 1691, -2);
+            g.AddEdge(5, d, 1692, -3);
+            g.AddEdge(d, 5, 1693, -4);
+            //g.AddEdge(s, 85, 1690, -1);
+            //g.AddEdge(85, s, 1691, -2);
+            //g.AddEdge(102, d, 1692, -3);
+            //g.AddEdge(d, 102, 1693, -4);
+            g.PrintAllPaths(s, d);
 			//var test = g.BFSAllPath;
 			
 			// Console.WriteLine("Lisstttt");
