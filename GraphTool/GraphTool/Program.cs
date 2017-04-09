@@ -20,7 +20,7 @@ namespace GraphTool
 			//g.AddEdge(3, 4, 4);
 			//g.AddEdge(4, 5, 5);
 			//g.AddEdge(5, 0, 6);
-			string[] lines = System.IO.File.ReadAllLines(@"D:\test.txt");
+			string[] lines = System.IO.File.ReadAllLines("test.txt");
 			foreach (var line in lines)
 			{
 				var items = line.Split();
